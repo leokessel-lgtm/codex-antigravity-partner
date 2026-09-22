@@ -1,0 +1,20 @@
+{
+  "name": "leo-codex-antigravity-partner",
+  "interface": {
+    "displayName": "Codex Antigravity Partner"
+  },
+  "plugins": [
+    {
+      "name": "codex-antigravity-partner",
+      "source": {
+        "source": "local",
+        "path": "./plugins/codex-antigravity-partner"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

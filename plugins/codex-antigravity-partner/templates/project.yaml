@@ -1,0 +1,11 @@
+version: 1
+project_id: example-project
+workspace_root: ..
+allowed_paths:
+  - ..
+allowed_permissions:
+  - sandbox
+sensitivity: private
+max_runtime_seconds: 300
+allow_unattended_approval: false
+# allowed_models may be added to constrain the live AG model list.

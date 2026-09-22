@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: plugins/codex-antigravity-partner
+        run: npm ci
+
+      - name: Run checks
+        working-directory: plugins/codex-antigravity-partner
+        run: npm run check
+
+      - name: Check relative links
+        run: node scripts/check-relative-links.mjs

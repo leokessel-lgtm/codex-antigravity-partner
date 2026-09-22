@@ -1,0 +1,30 @@
+{
+  "name": "codex-antigravity-partner",
+  "version": "0.3.1+codex.20260922074506",
+  "description": "Run governed Antigravity work with immutable review packets, permission-aware retries, ephemeral approval grants and separate Codex adjudication.",
+  "author": {
+    "name": "Leo Kesselring",
+    "url": "https://github.com/leokessel-lgtm"
+  },
+  "homepage": "https://github.com/leokessel-lgtm/codex-antigravity-partner#readme",
+  "repository": "https://github.com/leokessel-lgtm/codex-antigravity-partner",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex Antigravity Partner",
+    "shortDescription": "Governed Codex and Antigravity collaboration",
+    "longDescription": "Runs bounded Antigravity headless tasks with explicit model selection, durable state and cancellation. Review mode binds work to immutable packet hashes, reports read-permission blocks, suppresses identical retries, requires single-use grants for unattended review and keeps Codex adjudication separate.",
+    "developerName": "Leo Kesselring",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Delegate this bounded task to Antigravity",
+      "Show Antigravity collaboration runs",
+      "Cancel the active Antigravity run"
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}

@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/codex-antigravity-partner/delegated-result.schema.json",
+  "title": "Delegated Antigravity result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "summary", "changed_files", "checks", "risks", "needs_user_action"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["completed", "partial", "blocked"]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 12000
+    },
+    "changed_files": {
+      "type": "array",
+      "maxItems": 500,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "checks": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "status", "evidence"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "status": { "type": "string", "enum": ["passed", "failed", "not_run"] },
+          "evidence": { "type": "string", "maxLength": 6000 }
+        }
+      }
+    },
+    "risks": {
+      "type": "array",
+      "maxItems": 200,
+      "items": { "type": "string" }
+    },
+    "findings": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "claim", "classification", "confidence", "evidence", "implication"],
+        "properties": {
+          "title": { "type": "string", "minLength": 1, "maxLength": 300 },
+          "claim": { "type": "string", "minLength": 1, "maxLength": 4000 },
+          "classification": { "type": "string", "enum": ["observed", "inferred", "proposed", "unknown"] },
+          "confidence": { "type": "string", "enum": ["low", "medium", "high"] },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["source", "locator", "basis"],
+              "properties": {
+                "source": { "type": "string", "minLength": 1, "maxLength": 1000 },
+                "locator": { "type": "string", "minLength": 1, "maxLength": 500 },
+                "basis": { "type": "string", "minLength": 1, "maxLength": 2000 }
+              }
+            }
+          },
+          "implication": { "type": "string", "minLength": 1, "maxLength": 3000 },
+          "next_step": { "type": "string", "maxLength": 3000 }
+        }
+      }
+    },
+    "source_attestations": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "sha256", "basis"],
+        "properties": {
+          "source": { "type": "string", "minLength": 1, "maxLength": 1000 },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "basis": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "description"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1, "maxLength": 2000 },
+          "description": { "type": "string", "minLength": 1, "maxLength": 2000 }
+        }
+      }
+    },
+    "needs_user_action": { "type": "boolean" }
+  }
+}
