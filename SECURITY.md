@@ -11,6 +11,6 @@ Report security concerns privately to the repository owner through an existing t
 - Prompts are not persisted, but the current CLI receives them as process arguments.
 - Credentials, identity evidence, raw high-sensitivity records, grants and private packets must not enter issues or logs.
 - Edit permission, unattended review and publication retain separate approval boundaries.
-- Private GitHub visibility is access control, not a substitute for secret scanning or data minimisation.
+- Repository content is world-readable. Public visibility makes secret scanning and data minimisation mandatory release controls.
 
 Only the current `main` branch is supported. See [governance and privacy](docs/governance-and-privacy.md) for the operating boundary.

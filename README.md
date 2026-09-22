@@ -1,15 +1,14 @@
 # Codex Antigravity Partner
 
-Private, repo-local Codex marketplace for bounded Antigravity headless work. The plugin adds a local controller with explicit model selection, project scope, durable run state, cancellation, review packets and separate Codex adjudication.
+Public, repo-local Codex marketplace for bounded Antigravity headless work. The plugin adds a local controller with explicit model selection, project scope, durable run state, cancellation, review packets and separate Codex adjudication.
 
-The repository is intentionally unlicensed. Access permits private collaboration but does not grant a general right to copy, redistribute or publish the code.
+The repository is intentionally unlicensed. Public visibility permits inspection and cloning but does not grant a general right to copy, redistribute, publish or create derivative works from the code.
 
 ## Prerequisites
 
 To install and use the plugin, you need:
 
-- Private GitHub access to this repository.
-- Working Git credentials configured locally.
+- Git access to `github.com`.
 - Your own installed and authenticated `agy` CLI.
 - Codex with plugin marketplace support.
 - Node.js 20 or later.
@@ -21,7 +20,7 @@ codex plugin marketplace add leokessel-lgtm/codex-antigravity-partner --ref main
 codex plugin add codex-antigravity-partner@leo-codex-antigravity-partner
 ```
 
-Repository access and Antigravity authentication are separate. The plugin invokes your installed `agy` executable and does not include or copy credentials.
+Public repository access and Antigravity authentication are separate. The plugin invokes your installed `agy` executable and does not include or copy credentials.
 
 ## How it works
 

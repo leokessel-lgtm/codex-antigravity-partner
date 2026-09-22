@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Change the GitHub repository from private to public and align access, contribution and security guidance.
+
 ## 0.3.1 - 2026-09-22
 
 - Prepare the private repo-local marketplace and collaborator documentation.

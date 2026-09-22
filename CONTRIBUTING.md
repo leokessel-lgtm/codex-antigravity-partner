@@ -1,6 +1,6 @@
 # Contributing
 
-This repository is private and intentionally unlicensed. It does not accept public contributions.
+This repository is public and intentionally unlicensed. Public visibility does not grant reuse rights. Discuss a proposed contribution with the repository owner before preparing it; accepted changes still require maintainer review.
 
 ## Testing
 
