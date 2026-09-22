@@ -4,8 +4,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { afterEach, test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
-const checker = path.resolve('scripts/check-relative-links.mjs');
+const checker = fileURLToPath(new URL('./check-relative-links.mjs', import.meta.url));
 const temporaryDirectories = [];
 
 function fixture(markdown, configure = () => {}) {
@@ -69,4 +70,12 @@ test('rejects a symlink whose resolved target escapes the repository', () => {
   const result = run(repository);
   assert.equal(result.status, 1);
   assert.match(result.stderr, /escapes repository root/);
+});
+
+test('rejects file and unsupported URI schemes', () => {
+  for (const link of ['file:///tmp/secret.md', 'custom:opaque-value']) {
+    const result = run(fixture(`[External](${link})`));
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /Unsupported URI scheme/);
+  }
 });

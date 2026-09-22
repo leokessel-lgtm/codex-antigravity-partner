@@ -79,6 +79,24 @@ async function waitForTerminal(runId, timeoutMs = 3_000) {
   return readState(stateDir, runId);
 }
 
+async function waitUntil(predicate, timeoutMs = 5_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (predicate()) return true;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  return predicate();
+}
+
+function isProcessAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function runArgs() {
   return fs.readFileSync(agyLog, 'utf8').trim().split(/\r?\n/)
     .filter(Boolean).map((line) => JSON.parse(line)).filter((args) => args[0] !== 'models');
@@ -352,6 +370,30 @@ test('deadline reaches timed_out and cancellation reaches cancelled', async () =
   const cancelled = startRun({ ...baseOptions('[sleep]'), runtimeMsOverride: 2_000 });
   assert.equal(cancelRun(cancelled.run_id, stateDir).status, 'cancelled');
   assert.equal((await waitForTerminal(cancelled.run_id)).status, 'cancelled');
+});
+
+test('cancellation escalates to descendants after the process leader exits', async () => {
+  if (process.platform === 'win32') return;
+  const pidFile = path.join(root, 'term-resistant-descendant.pid');
+  process.env.FAKE_AGY_DESCENDANT_PID_FILE = pidFile;
+  let descendantPid;
+  try {
+    const run = startRun({
+      ...baseOptions('[leader-exits-child-ignores-term]'),
+      runtimeMsOverride: 10_000,
+    });
+    assert.equal(await waitUntil(() => fs.existsSync(pidFile)), true);
+    descendantPid = Number(fs.readFileSync(pidFile, 'utf8'));
+    assert.equal(isProcessAlive(descendantPid), true);
+
+    assert.equal(cancelRun(run.run_id, stateDir).status, 'cancelled');
+    assert.equal(await waitUntil(() => !isProcessAlive(descendantPid), 5_000), true);
+  } finally {
+    delete process.env.FAKE_AGY_DESCENDANT_PID_FILE;
+    if (descendantPid && isProcessAlive(descendantPid)) {
+      try { process.kill(descendantPid, 'SIGKILL'); } catch { /* already stopped */ }
+    }
+  }
 });
 
 test('state is atomic, owner-only and contains no prompt', async () => {

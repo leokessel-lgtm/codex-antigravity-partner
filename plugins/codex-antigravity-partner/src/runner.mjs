@@ -128,10 +128,10 @@ function parseDelegatedOutput(stdout) {
   };
 }
 
-function stopTimers(control) {
+function stopTimers(control, { preserveForceKill = false } = {}) {
   clearInterval(control?.heartbeat);
   clearTimeout(control?.deadline);
-  clearTimeout(control?.forceKill);
+  if (!preserveForceKill) clearTimeout(control?.forceKill);
 }
 
 function terminalUpdate(stateDir, runId, patch) {
@@ -339,9 +339,12 @@ export function startRun(options) {
     terminalUpdate(stateDir, runId, { status: 'failed', error: `Could not start Antigravity: ${error.message}` });
   });
   child.once('close', (code, signal) => {
-    stopTimers(control);
-    RUNNING_PROCESSES.delete(runId);
     const current = readState(stateDir, runId);
+    const preserveForceKill = Boolean(
+      control.forceKill && (current?.status === 'cancelled' || current?.status === 'timed_out'),
+    );
+    stopTimers(control, { preserveForceKill });
+    RUNNING_PROCESSES.delete(runId);
     if (!current || TERMINAL_STATES.has(current.status)) return;
     if (code !== 0) {
       terminalUpdate(stateDir, runId, {

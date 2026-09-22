@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
+import { spawn } from 'node:child_process';
 
 const args = process.argv.slice(2);
 if (process.env.FAKE_AGY_LOG) {
@@ -55,6 +56,16 @@ if (prompt.includes('[review-sleep]')) {
   setTimeout(() => {
     process.stdout.write(JSON.stringify({ status: 'SUCCESS', structured_output: validResult, denied_actions: [] }));
   }, 200);
+} else if (prompt.includes('[leader-exits-child-ignores-term]')) {
+  const descendant = spawn(process.execPath, [
+    '-e',
+    'process.on("SIGTERM", () => {}); setInterval(() => {}, 1000);',
+  ], { stdio: 'ignore' });
+  if (process.env.FAKE_AGY_DESCENDANT_PID_FILE) {
+    fs.writeFileSync(process.env.FAKE_AGY_DESCENDANT_PID_FILE, String(descendant.pid));
+  }
+  process.on('SIGTERM', () => process.exit(143));
+  setInterval(() => {}, 1_000);
 } else if (prompt.includes('[sleep]')) {
   const timer = setTimeout(() => {
     process.stdout.write(JSON.stringify({ status: 'SUCCESS', response: JSON.stringify(validResult), denied_actions: [] }));

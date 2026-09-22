@@ -36,7 +36,14 @@ for (const source of markdownFiles(repositoryRoot)) {
 
   while ((match = markdownLink.exec(content)) !== null) {
     const rawLink = match[1].trim();
-    if (!rawLink || rawLink.startsWith('#') || rawLink.startsWith('//') || /^[a-z][a-z\d+.-]*:/i.test(rawLink)) {
+    if (!rawLink || rawLink.startsWith('#') || rawLink.startsWith('//')) {
+      continue;
+    }
+
+    const scheme = rawLink.match(/^([a-z][a-z\d+.-]*):/i)?.[1]?.toLowerCase();
+    if (scheme) {
+      if (['http', 'https', 'mailto'].includes(scheme)) continue;
+      report(source, rawLink, 'Unsupported URI scheme');
       continue;
     }
 
