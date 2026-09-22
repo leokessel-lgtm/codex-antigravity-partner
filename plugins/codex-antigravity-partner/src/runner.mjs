@@ -134,6 +134,18 @@ function stopTimers(control, { preserveForceKill = false } = {}) {
   if (!preserveForceKill) clearTimeout(control?.forceKill);
 }
 
+function scheduleForceKill(runId, control) {
+  clearTimeout(control.forceKill);
+  control.forceKill = setTimeout(() => {
+    try {
+      signalProcessTree(control.child, 'SIGKILL');
+    } finally {
+      control.forceKill = undefined;
+      if (RUNNING_PROCESSES.get(runId) === control) RUNNING_PROCESSES.delete(runId);
+    }
+  }, 3_000);
+}
+
 function terminalUpdate(stateDir, runId, patch) {
   const current = readState(stateDir, runId);
   if (!current || TERMINAL_STATES.has(current.status)) return current;
@@ -329,7 +341,7 @@ export function startRun(options) {
     });
     if (state?.status === 'timed_out') {
       signalProcessTree(child, 'SIGTERM');
-      control.forceKill = setTimeout(() => signalProcessTree(child, 'SIGKILL'), 3_000);
+      scheduleForceKill(runId, control);
     }
   }, maxRuntimeMs);
 
@@ -344,7 +356,7 @@ export function startRun(options) {
       control.forceKill && (current?.status === 'cancelled' || current?.status === 'timed_out'),
     );
     stopTimers(control, { preserveForceKill });
-    RUNNING_PROCESSES.delete(runId);
+    if (!preserveForceKill) RUNNING_PROCESSES.delete(runId);
     if (!current || TERMINAL_STATES.has(current.status)) return;
     if (code !== 0) {
       terminalUpdate(stateDir, runId, {
@@ -429,7 +441,7 @@ export function cancelRun(runId, stateDir) {
   if (control) {
     stopTimers(control);
     signalProcessTree(control.child, 'SIGTERM');
-    control.forceKill = setTimeout(() => signalProcessTree(control.child, 'SIGKILL'), 3_000);
+    scheduleForceKill(runId, control);
   }
   return cancelled;
 }

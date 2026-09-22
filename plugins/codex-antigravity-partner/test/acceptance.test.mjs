@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { after, before, test } from 'node:test';
-import { cancelRun, startRun } from '../src/runner.mjs';
+import { cancelRun, cleanupOwnedRunsSync, startRun } from '../src/runner.mjs';
 import { buildReviewPacket } from '../src/review-packet.mjs';
 import { detectOrphans, readState, writeState } from '../src/state.mjs';
 
@@ -388,6 +388,35 @@ test('cancellation escalates to descendants after the process leader exits', asy
 
     assert.equal(cancelRun(run.run_id, stateDir).status, 'cancelled');
     assert.equal(await waitUntil(() => !isProcessAlive(descendantPid), 5_000), true);
+  } finally {
+    delete process.env.FAKE_AGY_DESCENDANT_PID_FILE;
+    if (descendantPid && isProcessAlive(descendantPid)) {
+      try { process.kill(descendantPid, 'SIGKILL'); } catch { /* already stopped */ }
+    }
+  }
+});
+
+test('transport cleanup kills a resistant descendant during the cancellation grace period', async () => {
+  if (process.platform === 'win32') return;
+  const pidFile = path.join(root, 'cleanup-resistant-descendant.pid');
+  process.env.FAKE_AGY_DESCENDANT_PID_FILE = pidFile;
+  let descendantPid;
+  try {
+    const run = startRun({
+      ...baseOptions('[leader-exits-child-ignores-term]'),
+      runtimeMsOverride: 10_000,
+    });
+    assert.equal(await waitUntil(() => fs.existsSync(pidFile)), true);
+    descendantPid = Number(fs.readFileSync(pidFile, 'utf8'));
+    const leaderPid = readState(stateDir, run.run_id).pid;
+
+    assert.equal(cancelRun(run.run_id, stateDir).status, 'cancelled');
+    assert.equal(await waitUntil(() => !isProcessAlive(leaderPid), 1_000), true);
+    assert.equal(isProcessAlive(descendantPid), true);
+
+    const cleaned = cleanupOwnedRunsSync(stateDir, 'Transport closed during cancellation grace period.');
+    assert.equal(cleaned.some(({ run_id: runId }) => runId === run.run_id), true);
+    assert.equal(await waitUntil(() => !isProcessAlive(descendantPid), 1_000), true);
   } finally {
     delete process.env.FAKE_AGY_DESCENDANT_PID_FILE;
     if (descendantPid && isProcessAlive(descendantPid)) {

@@ -57,13 +57,17 @@ if (prompt.includes('[review-sleep]')) {
     process.stdout.write(JSON.stringify({ status: 'SUCCESS', structured_output: validResult, denied_actions: [] }));
   }, 200);
 } else if (prompt.includes('[leader-exits-child-ignores-term]')) {
+  const descendantScript = [
+    "const fs = require('node:fs');",
+    "process.on('SIGTERM', () => {});",
+    "fs.writeFileSync(process.env.FAKE_AGY_DESCENDANT_PID_FILE, String(process.pid));",
+    'setInterval(() => {}, 1000);',
+  ].join(' ');
   const descendant = spawn(process.execPath, [
     '-e',
-    'process.on("SIGTERM", () => {}); setInterval(() => {}, 1000);',
-  ], { stdio: 'ignore' });
-  if (process.env.FAKE_AGY_DESCENDANT_PID_FILE) {
-    fs.writeFileSync(process.env.FAKE_AGY_DESCENDANT_PID_FILE, String(descendant.pid));
-  }
+    descendantScript,
+  ], { env: process.env, stdio: 'ignore' });
+  descendant.unref();
   process.on('SIGTERM', () => process.exit(143));
   setInterval(() => {}, 1_000);
 } else if (prompt.includes('[sleep]')) {
