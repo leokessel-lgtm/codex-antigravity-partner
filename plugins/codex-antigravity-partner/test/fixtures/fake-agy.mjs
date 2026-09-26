@@ -14,6 +14,17 @@ if (args[0] === 'models') {
   process.stdout.write('gemini-test-pro\tGemini Test Pro (High)\nclaude-test-thinking\tClaude Test (Thinking)\n');
   process.exit(0);
 }
+if (args[0] === '--version') {
+  process.stdout.write('fake-agy 1.0\n');
+  process.exit(0);
+}
+if (args[0] === 'mcp' && args[1] === 'list') {
+  if (process.env.FAKE_AGY_MCP_LIST_FAIL === '1') process.exit(1);
+  process.stdout.write('NAME                    TYPE  STATUS    COMMAND/URL\n');
+  process.stdout.write('home-developer          http  enabled   https://example.invalid/private\n');
+  process.stdout.write('android-management      http  disabled  https://example.invalid/android\n');
+  process.exit(0);
+}
 
 const promptArgument = args.find((argument) => argument.startsWith('--print='));
 const prompt = promptArgument?.slice('--print='.length) || '';

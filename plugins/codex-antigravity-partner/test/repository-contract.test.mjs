@@ -7,7 +7,9 @@ import { fileURLToPath } from 'node:url';
 const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repositoryRoot = path.resolve(pluginRoot, '../..');
 
-test('repository exposes the Antigravity plugin through its local marketplace', () => {
+test('repository exposes the Antigravity plugin through its local marketplace', {
+  skip: !fs.existsSync(path.join(repositoryRoot, '.git')),
+}, () => {
   const marketplacePath = path.join(repositoryRoot, '.agents/plugins/marketplace.json');
   const marketplace = JSON.parse(fs.readFileSync(marketplacePath, 'utf8'));
   assert.equal(marketplace.name, 'leo-codex-antigravity-partner');

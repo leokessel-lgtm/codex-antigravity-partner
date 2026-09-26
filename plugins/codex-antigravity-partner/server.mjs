@@ -9,9 +9,11 @@ import { loadConfig } from './src/config.mjs';
 import { canonicalJson, sha256 } from './src/integrity.mjs';
 import { listModels, validateModel } from './src/models.mjs';
 import { verifyReviewPacket } from './src/review-packet.mjs';
+import { observePreflight } from './src/preflight.mjs';
 import { cancelRun, cleanupOwnedRunsSync, startRun } from './src/runner.mjs';
 import { detectOrphans, listStates, readState, TERMINAL_STATES } from './src/state.mjs';
 import { createUnattendedGrant } from './src/unattended-grant.mjs';
+import { CONTROLLER_VERSION } from './src/version.mjs';
 
 const agyCli = process.env.AGY_BIN || 'agy';
 const stateDir = process.env.ANTIGRAVITY_PARTNER_STATE_DIR
@@ -52,6 +54,20 @@ const tools = [
       },
     },
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  },
+  {
+    name: 'preflight',
+    description: 'Observe local AG model and MCP configuration without starting a run or predicting permission or authentication outcomes.',
+    inputSchema: {
+      type: 'object', additionalProperties: false, required: ['config_path', 'model'],
+      properties: {
+        config_path: { type: 'string', minLength: 1 },
+        model: { type: 'string', minLength: 1 },
+        required_mcp_servers: { type: 'array', maxItems: 20, items: { type: 'string', minLength: 1, maxLength: 100 } },
+        review_packet_manifest: { type: 'string', minLength: 1 },
+      },
+    },
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
   },
   {
     name: 'create_unattended_grant',
@@ -140,7 +156,7 @@ async function waitForRun(runId, afterUpdatedAt, timeoutSeconds = 30) {
 }
 
 const server = new Server(
-  { name: 'codex-antigravity-partner', version: '0.3.1' },
+  { name: 'codex-antigravity-partner', version: CONTROLLER_VERSION },
   { capabilities: { tools: {} } },
 );
 
@@ -154,7 +170,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           agy_executable: agyCli,
           available_models: listModels(agyCli),
           permissions: ['sandbox', 'accept-edits'],
-          features: ['structured-results', 'durable-state', 'heartbeat', 'timeout', 'cancel', 'orphan-detection', 'two-key-unattended-approval', 'client-safe-wait', 'disconnect-cleanup', 'review-packets', 'validated-model-source-attestations', 'codex-adjudication-artifacts', 'permission-blocked-terminal-state', 'identical-retry-suppression', 'ephemeral-unattended-grants'],
+          features: ['structured-results', 'durable-state', 'heartbeat', 'timeout', 'cancel', 'orphan-detection', 'two-key-unattended-approval', 'client-safe-wait', 'disconnect-cleanup', 'review-packets', 'validated-model-source-attestations', 'codex-adjudication-artifacts', 'permission-blocked-terminal-state', 'identical-retry-suppression', 'ephemeral-unattended-grants', 'observational-preflight'],
           limitations: ['no-cross-process-reattach', 'no-semantic-progress', 'no-desktop-task-creation'],
         });
       case 'start_run':
@@ -172,6 +188,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           reviewManifestPath: args.review_packet_manifest,
           agyCli,
           stateDir,
+        }));
+      case 'preflight':
+        return textResult(observePreflight({
+          configPath: args.config_path,
+          model: args.model,
+          requiredMcpServers: args.required_mcp_servers || [],
+          reviewManifestPath: args.review_packet_manifest,
+          agyCli,
         }));
       case 'create_unattended_grant': {
         const packet = verifyReviewPacket(args.review_packet_manifest);

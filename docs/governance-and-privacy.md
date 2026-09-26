@@ -2,6 +2,8 @@
 
 The controller makes delegated work inspectable without turning delegated narration into authority. The [MVP contract](../plugins/codex-antigravity-partner/docs/mvp-contract.md) is canonical when this summary differs.
 
+The observational `preflight` reads local AG model and MCP inventory and may verify an explicitly supplied packet. It returns connector names and enabled states, never connector URLs or credentials. Enabled does not mean authenticated, reachable or permitted by AG at run time. JEV is an optional external, potentially billable advisory evaluator in Codex, not a runtime dependency or automatic router in this plugin.
+
 ## Prerequisites
 
 The plugin invokes the collaborator's installed and authenticated `agy` executable. It does not read or distribute Antigravity credentials. Prompts are not persisted in controller state, but the current CLI receives a prompt as a process argument, so another privileged local process could observe it while the run is active.

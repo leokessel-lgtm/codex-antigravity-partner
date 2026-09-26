@@ -10,6 +10,7 @@ import { validateReviewResult } from './review-validation.mjs';
 import { listStates, readState, SERVER_OWNER_ID, TERMINAL_STATES, writeState } from './state.mjs';
 import { consumeUnattendedGrant } from './unattended-grant.mjs';
 import { validateResult } from './validate.mjs';
+import { CONTROLLER_VERSION, PLUGIN_VERSION, readAgyCliVersion } from './version.mjs';
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 const resultSchemaPath = path.join(moduleDir, '..', 'schemas', 'delegated-result.schema.json');
@@ -31,7 +32,7 @@ function deniedActionClass(deniedActions) {
   return readDenied ? 'read' : null;
 }
 
-function permissionBlockedPatch(deniedActions) {
+function permissionBlockedPatch(deniedActions, failureStage) {
   if (deniedActionClass(deniedActions) !== 'read') return null;
   return {
     status: 'permission_blocked',
@@ -41,6 +42,7 @@ function permissionBlockedPatch(deniedActions) {
     retryable: false,
     required_change: READ_PERMISSION_REQUIRED_CHANGE,
     denied_actions: deniedActions,
+    failure_stage: failureStage,
   };
 }
 
@@ -89,11 +91,12 @@ function parseDelegatedOutput(stdout) {
   try {
     envelope = JSON.parse(stdout.trim());
   } catch {
-    return { kind: 'invalid', error: 'Antigravity did not return a valid JSON envelope.' };
+    return { kind: 'invalid', failure_stage: 'envelope_parse', error: 'Antigravity did not return a valid JSON envelope.' };
   }
   if (envelope?.status !== 'SUCCESS') {
     return {
       kind: 'failed',
+      failure_stage: 'cli_status',
       error: typeof envelope?.error === 'string' && envelope.error.trim()
         ? envelope.error.slice(0, 2000)
         : `Antigravity reported ${envelope?.status || 'an unknown status'}.`,
@@ -106,6 +109,7 @@ function parseDelegatedOutput(stdout) {
     try { result = JSON.parse(result); } catch {
       return {
         kind: 'invalid',
+        failure_stage: 'structured_output_parse',
         error: 'Antigravity reported success without a structured final result.',
         denied_actions: Array.isArray(envelope.denied_actions) ? envelope.denied_actions : [],
       };
@@ -115,6 +119,7 @@ function parseDelegatedOutput(stdout) {
   if (!validation.valid || !result.summary.trim()) {
     return {
       kind: 'invalid',
+      failure_stage: 'schema_validation',
       error: `Delegated result failed validation${validation.errors.length ? `: ${validation.errors.join('; ')}` : '.'}`,
       denied_actions: Array.isArray(envelope.denied_actions) ? envelope.denied_actions : [],
     };
@@ -270,6 +275,10 @@ export function startRun(options) {
 
   const runId = crypto.randomUUID();
   writeState(stateDir, runId, {
+    state_format_version: 2,
+    controller_version: CONTROLLER_VERSION,
+    plugin_version: PLUGIN_VERSION,
+    agy_cli_version: readAgyCliVersion(agyCli),
     status: 'queued',
     created_at: new Date().toISOString(),
     project_id: config.project_id,
@@ -337,6 +346,7 @@ export function startRun(options) {
   control.deadline = setTimeout(() => {
     const state = terminalUpdate(stateDir, runId, {
       status: 'timed_out',
+      failure_stage: 'deadline',
       error: `Run exceeded ${config.max_runtime_seconds} seconds.`,
     });
     if (state?.status === 'timed_out') {
@@ -348,7 +358,7 @@ export function startRun(options) {
   child.once('error', (error) => {
     stopTimers(control);
     RUNNING_PROCESSES.delete(runId);
-    terminalUpdate(stateDir, runId, { status: 'failed', error: `Could not start Antigravity: ${error.message}` });
+    terminalUpdate(stateDir, runId, { status: 'failed', failure_stage: 'spawn', error: `Could not start Antigravity: ${error.message}` });
   });
   child.once('close', (code, signal) => {
     const current = readState(stateDir, runId);
@@ -361,12 +371,13 @@ export function startRun(options) {
     if (code !== 0) {
       terminalUpdate(stateDir, runId, {
         status: 'failed',
+        failure_stage: 'process_exit',
         error: `Antigravity exited with code ${code ?? 'none'}${signal ? ` after ${signal}` : ''}.`,
       });
       return;
     }
     if (control.truncated) {
-      terminalUpdate(stateDir, runId, { status: 'invalid_result', error: 'Antigravity output exceeded the controller limit.' });
+      terminalUpdate(stateDir, runId, { status: 'invalid_result', failure_stage: 'output_limit', error: 'Antigravity output exceeded the controller limit.' });
       return;
     }
     const parsed = parseDelegatedOutput(control.stdout);
@@ -374,15 +385,15 @@ export function startRun(options) {
       terminalUpdate(
         stateDir,
         runId,
-        permissionBlockedPatch(parsed.denied_actions)
-          || { status: 'failed', error: parsed.error, denied_actions: parsed.denied_actions },
+        permissionBlockedPatch(parsed.denied_actions, parsed.failure_stage)
+          || { status: 'failed', failure_stage: parsed.failure_stage, error: parsed.error, denied_actions: parsed.denied_actions },
       );
     } else if (parsed.kind === 'invalid') {
       terminalUpdate(
         stateDir,
         runId,
-        permissionBlockedPatch(parsed.denied_actions)
-          || { status: 'invalid_result', error: parsed.error, denied_actions: parsed.denied_actions },
+        permissionBlockedPatch(parsed.denied_actions, parsed.failure_stage)
+          || { status: 'invalid_result', failure_stage: parsed.failure_stage, error: parsed.error, denied_actions: parsed.denied_actions },
       );
     } else {
       if (review) {
@@ -390,6 +401,7 @@ export function startRun(options) {
         if (!packetAfter.valid || packetAfter.manifest_sha256 !== review.manifest_sha256) {
           terminalUpdate(stateDir, runId, {
             status: 'invalid_result',
+            failure_stage: 'packet_integrity',
             error: 'Review packet integrity changed after preflight.',
             packet_verification: { valid: false, failures: packetAfter.failures },
           });
@@ -399,6 +411,7 @@ export function startRun(options) {
         if (!attestationValidation.valid) {
           terminalUpdate(stateDir, runId, {
             status: 'invalid_result',
+            failure_stage: 'source_attestation',
             error: `Review source attestation validation failed: ${attestationValidation.errors.join('; ')}`,
             attestation_validation: attestationValidation,
             denied_actions: parsed.denied_actions,

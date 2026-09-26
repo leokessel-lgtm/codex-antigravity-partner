@@ -11,6 +11,7 @@ Use the `antigravity_partner` MCP tools for governed headless delegation. Contin
 
 1. Read the target project's `.agent-collab/project.yaml` and applicable project instructions.
 2. Call `capabilities` to get the current models. Select the best compatible model for the actual task and tell the user the model and task-specific rationale before `start_run`.
+   For connector-dependent tasks, `preflight` can report current named AG MCP enablement and model availability; it cannot establish connector authentication or predict permission outcomes.
 3. Keep the scope bounded. Use `sandbox` unless implementation genuinely requires `accept-edits` and the project configuration permits it.
 4. Do not send secrets, credentials, identity evidence, account identifiers or private financial records unless the user has authorised that exact transmission.
 5. Treat review-packet file reads as expected. Before the first `start_run`, inspect `unattended_approval_eligible` and `review_access_state` in the generated packet output. The controller rejects `review_mode` for an ineligible manifest-bound configuration before spawning AG. Either keep the review prompt self-contained without `review_mode`, or rebuild a non-sensitive packet with `allow_unattended_approval: true` and obtain fresh approval for its new manifest.

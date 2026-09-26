@@ -8,9 +8,12 @@ If the MCP server does not start, use Node.js 20 or later, run `npm ci`, and con
 
 Configuration failures occur before a child process starts. Check that the workspace and added directories resolve within `allowed_paths`, the requested permission is allowed, and the selected model appears in `capabilities`.
 
+Use `preflight` to inspect the selected model, named AG MCP servers and an optional review packet. An enabled connector is only a local configuration observation. `unknown` means the inventory could not be read; it does not mean the connector is missing. The tool does not test authentication or predict AG read permission.
+
 ## Run Failures
 
 - `invalid_result`: the CLI returned empty, narrative-only or schema-invalid output. Do not infer completion from exit code zero.
+- For new runs, `failure_stage` distinguishes envelope parsing, nested structured-output parsing, schema validation, process exit, deadline and review-integrity failures. Historical records do not have reliable version or stage metadata.
 - `permission_blocked`: AG reported a denied file or directory read on a failed or invalid result. Change the packet or authority; changing only the prompt or model is not enough.
 - `failed`: inspect the bounded controller error and denied actions.
 - `timed_out`: reduce the task or increase the project limit within policy.

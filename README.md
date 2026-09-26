@@ -29,8 +29,11 @@ Public repository access and Antigravity authentication are separate. The plugin
 3. `start_run` launches one bounded process and returns immediately. Completion is determined from durable state, not process creation.
 4. `wait_run` or `get_run` returns the terminal result. Only `succeeded` means the structured result passed controller validation.
 5. Review work uses an immutable packet, exact manifest binding and, when explicitly approved, a short-lived single-use grant.
+6. `preflight` can inspect local model and AG MCP inventory and verify a review packet before a run. It reports authentication and permission outcomes as unverified.
 
 Sandbox mode uses Antigravity plan mode. Edit-enabled work requires explicit `accept-edits` permission in both project policy and the individual run. Review mode is always sandbox-only.
+
+The desktop bridge is a separate local CDP tool for tasks already open in Antigravity. AG remote-control daemon state is not the bridge's availability test. JEV may provide an optional prompted evaluation or routing opinion in Codex; it is not a runtime dependency of this controller and does not choose models or grant permissions automatically.
 
 ## Documentation
 

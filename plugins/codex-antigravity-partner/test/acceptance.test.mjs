@@ -136,6 +136,35 @@ test('valid sandboxed run succeeds with the real CLI flag shape', async () => {
   assert.equal(args.some((argument) => argument.includes('dangerously-skip-permissions')), false);
 });
 
+test('new runs record bounded controller and CLI provenance', async () => {
+  const { run_id: runId } = startRun(baseOptions());
+  const state = await waitForTerminal(runId);
+  assert.equal(state.status, 'succeeded');
+  assert.equal(state.state_format_version, 2);
+  assert.match(state.controller_version, /^0\.3\.2$/);
+  assert.match(state.plugin_version, /^0\.3\.2\+codex\./);
+  assert.equal(state.agy_cli_version, '1.0');
+  assert.equal(JSON.stringify(state).includes('Complete the bounded task.'), false);
+});
+
+test('existing run records remain readable without inferred version data', () => {
+  const runId = crypto.randomUUID();
+  fs.mkdirSync(stateDir, { recursive: true });
+  fs.writeFileSync(path.join(stateDir, `${runId}.json`), JSON.stringify({ run_id: runId, status: 'succeeded' }));
+  const state = readState(stateDir, runId);
+  assert.equal(state.status, 'succeeded');
+  assert.equal(Object.hasOwn(state, 'controller_version'), false);
+  assert.equal(Object.hasOwn(state, 'agy_cli_version'), false);
+});
+
+test('malformed structured output reports its stage alongside a denied read', async () => {
+  const { run_id: runId } = startRun(baseOptions('[denied-read-invalid]'));
+  const state = await waitForTerminal(runId);
+  assert.equal(state.status, 'permission_blocked');
+  assert.equal(state.failure_stage, 'structured_output_parse');
+  assert.equal(state.denied_action_class, 'read');
+});
+
 test('valid accept-edits run requires explicit permission and retains terminal sandboxing', async () => {
   const { run_id: runId } = startRun({ ...baseOptions(), permission: 'accept-edits' });
   assert.equal((await waitForTerminal(runId)).status, 'succeeded');

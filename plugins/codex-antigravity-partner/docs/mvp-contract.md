@@ -38,6 +38,10 @@ Terminal states never transition again. State snapshots are written atomically w
 
 Reports the `agy` executable, available models and supported partner features. This is read-only.
 
+### `preflight`
+
+Reports the selected model's current CLI availability and project allow-list status, the enabled/disabled/missing state of named AG MCP servers from `agy mcp list`, and optional review-packet integrity and exact configuration binding. An unreadable MCP inventory returns `unknown`, not `missing`. It returns no connector URL and never invokes a connector, starts a run or creates a grant. `config_allows_unattended_approval` is only a project setting; `permission_outcome` and `connector_authentication` remain `unverified`.
+
 ### `start_run`
 
 Starts one bounded asynchronous run. Required inputs include project configuration, prompt, model and model rationale. Returns immediately with the run ID and effective scope. A successful start is not successful task completion.
@@ -59,6 +63,8 @@ Creates an owner-only grant after explicit user approval for a concrete review. 
 ### `get_run`
 
 Returns current state, timestamps, effective model/scope, denied actions, validation status and a bounded result or error. It never exposes a persisted prompt.
+
+New run records have `state_format_version: 2`, `controller_version`, `plugin_version` and a bounded `agy_cli_version` or `null`. Terminal errors include `failure_stage` where the controller can identify the stage. A malformed structured result with a denied file read retains `structured_output_parse` as its stage and `permission_blocked` as its terminal status. Older records remain readable without fabricated metadata.
 
 ### `wait_run`
 

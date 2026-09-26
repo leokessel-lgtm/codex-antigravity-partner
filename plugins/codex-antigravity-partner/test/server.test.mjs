@@ -78,7 +78,7 @@ allowed_models: [gemini-test-pro]
     await client.connect(transport);
     const listedTools = (await client.listTools()).tools;
     const names = listedTools.map((tool) => tool.name).sort();
-    assert.deepEqual(names, ['cancel_run', 'capabilities', 'create_adjudication', 'create_unattended_grant', 'get_run', 'list_runs', 'start_run', 'wait_run']);
+    assert.deepEqual(names, ['cancel_run', 'capabilities', 'create_adjudication', 'create_unattended_grant', 'get_run', 'list_runs', 'preflight', 'start_run', 'wait_run']);
     const startTool = listedTools.find((tool) => tool.name === 'start_run');
     assert.equal(startTool.inputSchema.properties.review_mode.type, 'boolean');
     assert.equal(startTool.inputSchema.properties.review_packet_manifest.type, 'string');
@@ -95,6 +95,26 @@ allowed_models: [gemini-test-pro]
     assert.equal(capabilities.features.includes('permission-blocked-terminal-state'), true);
     assert.equal(capabilities.features.includes('identical-retry-suppression'), true);
     assert.equal(capabilities.features.includes('ephemeral-unattended-grants'), true);
+
+    const preflight = contentJson(await client.callTool({
+      name: 'preflight',
+      arguments: {
+        config_path: configPath,
+        model: 'gemini-test-pro',
+        required_mcp_servers: ['home-developer', 'android-management', 'missing-server'],
+      },
+    }));
+    assert.equal(preflight.model.available, true);
+    assert.equal(preflight.model.allowed_by_project, true);
+    assert.deepEqual(preflight.mcp_servers, {
+      'home-developer': 'enabled',
+      'android-management': 'disabled',
+      'missing-server': 'missing',
+    });
+    assert.equal(preflight.permission_outcome, 'unverified');
+    assert.equal(preflight.connector_authentication, 'unverified');
+    assert.equal(JSON.stringify(preflight).includes('example.invalid'), false);
+    assert.equal(fs.existsSync(stateDir), false);
 
     const started = contentJson(await client.callTool({
       name: 'start_run',

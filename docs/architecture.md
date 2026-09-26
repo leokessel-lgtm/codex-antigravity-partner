@@ -20,6 +20,7 @@ Codex MCP call
 The controller exposes:
 
 - `capabilities`: live models and controller features.
+- `preflight`: observable model, AG MCP inventory and optional packet integrity; no run or grant is created.
 - `start_run`: asynchronous bounded execution.
 - `get_run`, `wait_run`, `list_runs`: durable state inspection.
 - `cancel_run`: termination of a controller-owned run.
@@ -42,6 +43,12 @@ running after controller restart -> orphaned
 ```
 
 Terminal states never transition again. A heartbeat proves controller liveness only. It does not prove useful model progress. A zero process exit is insufficient: only a successful CLI envelope with schema-valid structured output reaches `succeeded`.
+
+New run records carry controller, plugin and AG CLI version metadata. Failed outcomes include a bounded `failure_stage` such as `structured_output_parse` or `deadline`. Existing records without these fields remain readable, and their version cannot be inferred retrospectively.
+
+## Routing and acceptance
+
+Use the headless partner for a new bounded task that needs explicit model choice, structured output and durable state. Use the separate desktop bridge for a task already open in Antigravity; that bridge uses a local CDP endpoint, independent of the AG remote-control daemon. `start_run` confirms process creation, `succeeded` confirms validated delegated output, `create_adjudication` records unresolved Codex findings, and source review determines acceptance. Optional JEV evaluation remains a separate prompted Codex action and cannot change any of these states or approvals.
 
 ## Validated Model Source Attestations vs Operating-System Read Telemetry
 
