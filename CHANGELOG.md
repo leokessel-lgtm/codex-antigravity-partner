@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.3.3 - 2026-09-26
+
+- Upgrade js-yaml to 5.4.2 and use its namespace exports in project configuration and review-packet handling.
+
 ## 0.3.2 - 2026-09-26
 
 - Change the GitHub repository from private to public and align access, contribution and security guidance.

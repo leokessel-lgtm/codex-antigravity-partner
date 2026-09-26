@@ -18,7 +18,7 @@ To install and use the plugin, you need:
 Clone the pinned release, install the local MCP server dependencies, then add the checked-out marketplace:
 
 ```bash
-git clone --branch v0.3.2 --depth 1 https://github.com/leokessel-lgtm/codex-antigravity-partner.git
+git clone --branch v0.3.3 --depth 1 https://github.com/leokessel-lgtm/codex-antigravity-partner.git
 cd codex-antigravity-partner
 npm --prefix plugins/codex-antigravity-partner ci --omit=dev
 codex plugin marketplace add .

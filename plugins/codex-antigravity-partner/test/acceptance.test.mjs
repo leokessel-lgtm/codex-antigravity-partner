@@ -137,12 +137,14 @@ test('valid sandboxed run succeeds with the real CLI flag shape', async () => {
 });
 
 test('new runs record bounded controller and CLI provenance', async () => {
+  const packageJson = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+  const pluginJson = JSON.parse(fs.readFileSync(new URL('../.codex-plugin/plugin.json', import.meta.url), 'utf8'));
   const { run_id: runId } = startRun(baseOptions());
   const state = await waitForTerminal(runId);
   assert.equal(state.status, 'succeeded');
   assert.equal(state.state_format_version, 2);
-  assert.match(state.controller_version, /^0\.3\.2$/);
-  assert.match(state.plugin_version, /^0\.3\.2\+codex\./);
+  assert.equal(state.controller_version, packageJson.version);
+  assert.equal(state.plugin_version, pluginJson.version);
   assert.equal(state.agy_cli_version, '1.0');
   assert.equal(JSON.stringify(state).includes('Complete the bounded task.'), false);
 });
