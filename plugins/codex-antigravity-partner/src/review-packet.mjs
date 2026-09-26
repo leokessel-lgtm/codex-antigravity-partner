@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { canonicalJson, sha256 } from './integrity.mjs';
 import { isWithin } from './paths.mjs';
 

@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { buildReviewPacket, verifyReviewPacket } from '../src/review-packet.mjs';
 
 const buildPacketCli = fileURLToPath(new URL('../bin/build-review-packet.mjs', import.meta.url));
