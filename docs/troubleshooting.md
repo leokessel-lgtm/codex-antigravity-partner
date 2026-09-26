@@ -2,6 +2,12 @@
 
 Start with `agy models` and `agy --help` to confirm the CLI is installed and authenticated, then call `capabilities` to confirm the controller sees the expected models.
 
+## Installation Failures
+
+Use the pinned clone and local-marketplace commands in the [README](../README.md). Confirm `plugins/codex-antigravity-partner/node_modules` exists after `npm ci --omit=dev`, and keep the checkout at the path registered with Codex.
+
+Do not substitute `codex plugin marketplace add leokessel-lgtm/codex-antigravity-partner --ref ...` for the documented clone flow. A Git-backed marketplace snapshot does not install this local Node MCP server's dependencies, so the server will fail to start with a missing-package error.
+
 ## MCP Tools Issues
 
 If the MCP server does not start, use Node.js 20 or later, run `npm ci`, and confirm `.mcp.json` points to `node ./server.mjs` with the plugin as its working directory.
