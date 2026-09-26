@@ -1,6 +1,6 @@
 {
   "name": "codex-antigravity-partner",
-  "version": "0.3.2+codex.20260926083631",
+  "version": "0.3.3+codex.20260926100057",
   "description": "Run governed Antigravity work with immutable review packets, permission-aware retries, ephemeral approval grants and separate Codex adjudication.",
   "author": {
     "name": "Leo Kesselring",
