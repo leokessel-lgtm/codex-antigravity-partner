@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Ajv from 'ajv/dist/2020.js';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { sha256 } from './integrity.mjs';
 import { assertAllowed, canonicalize } from './paths.mjs';
 
