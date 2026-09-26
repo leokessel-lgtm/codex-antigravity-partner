@@ -15,10 +15,17 @@ To install and use the plugin, you need:
 
 ## Installation
 
+Clone the pinned release, install the local MCP server dependencies, then add the checked-out marketplace:
+
 ```bash
-codex plugin marketplace add leokessel-lgtm/codex-antigravity-partner --ref main
+git clone --branch v0.3.2 --depth 1 https://github.com/leokessel-lgtm/codex-antigravity-partner.git
+cd codex-antigravity-partner
+npm --prefix plugins/codex-antigravity-partner ci --omit=dev
+codex plugin marketplace add .
 codex plugin add codex-antigravity-partner@leo-codex-antigravity-partner
 ```
+
+Keep the checkout while the marketplace is configured. A direct Git marketplace install does not install this local Node MCP server's dependencies; the explicit `npm ci --omit=dev` step is required.
 
 Public repository access and Antigravity authentication are separate. The plugin invokes your installed `agy` executable and does not include or copy credentials.
 
