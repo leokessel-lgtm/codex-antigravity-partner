@@ -8,7 +8,9 @@ The observational `preflight` reads local AG model and MCP inventory and may ver
 
 The plugin invokes the collaborator's installed and authenticated `agy` executable. It does not read or distribute Antigravity credentials. Prompts are not persisted in controller state, but the current CLI receives a prompt as a process argument, so another privileged local process could observe it while the run is active.
 
-Do not use this controller for credentials, raw high-sensitivity records or unnecessary personal information. Project scope constrains controller arguments; Antigravity remains responsible for its sandbox and permissions.
+Private records, including credentials and high-sensitivity material, may reach the selected AG model provider when AG opens them. Use them only under an explicit operator instruction that covers the local read scope and provider transfer; a standing instruction can cover future routine reads without per-file approval. Avoid unnecessary personal information in prompts and results. A configured AG read rule is technical access, not user authority. Project scope constrains controller arguments; Antigravity remains responsible for its sandbox and permissions.
+
+An operator may opt into `read_file(*)` in the AG CLI's global `~/.gemini/antigravity-cli/settings.json` to permit reads of locally accessible files outside the active project. `allowNonWorkspaceAccess` is a separate AG setting that may be needed for that scope. The rule applies to other AG CLI sessions too, not only this partner. A read rule does not grant writes or commands; retain the sandbox and review any broader permissions separately. Neither the plugin nor its public defaults set this opt-in.
 
 ## Access and Authorisation
 

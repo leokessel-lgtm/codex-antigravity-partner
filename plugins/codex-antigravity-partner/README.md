@@ -14,6 +14,8 @@ The [MVP contract](docs/mvp-contract.md) is the source-of-truth for trust bounda
 
 Operational routing lives in [`skills/codex-antigravity-partner/SKILL.md`](skills/codex-antigravity-partner/SKILL.md) and its linked contract. Documentation here does not replace action-time authority.
 
+An operator who explicitly authorises standing local-file reads and transfer to the selected AG model provider can configure AG CLI's global `read_file(*)` permission and `allowNonWorkspaceAccess` setting for machine-wide reads. Those settings are outside this plugin and affect other AG CLI sessions. Project `allowed_paths` constrain the workspace and added directories passed by the controller; they do not limit all reads permitted by AG. Ordinary sandboxed plan runs can read authorised paths without a review packet. Writes, commands, external actions and immutable packet review keep their separate controls.
+
 ## Development and Testing
 
 ```bash
