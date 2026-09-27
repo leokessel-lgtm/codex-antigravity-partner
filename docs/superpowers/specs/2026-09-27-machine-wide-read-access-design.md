@@ -14,7 +14,7 @@ Success means a headless AG run started by the partner can read a named file out
 
 ## Configuration and data flow
 
-The local AG CLI settings file, `~/.gemini/antigravity-cli/settings.json`, is the permission authority. Preserve its existing keys and add only the `read_file(*)` allow rule. Set `allowNonWorkspaceAccess` to `true` because the requested files may be outside active AG projects. Preserve `enableTerminalSandbox: true` and the current `toolPermission: proceed-in-sandbox`. Do not add `write_file(*)`, `command(*)`, `unsandboxed(*)`, `mcp(*)` or `read_url(*)` rules.
+The local AG CLI settings file, `~/.gemini/antigravity-cli/settings.json`, is the permission authority. Preserve its existing keys and add only the `read_file(*)` allow rule. Leave `allowNonWorkspaceAccess` at its existing value. A synthetic run confirmed that the explicit read rule alone permits an outside-project read; setting `allowNonWorkspaceAccess: true` also permitted an outside-project write in edit mode and was rolled back. Preserve `enableTerminalSandbox: true` and the current `toolPermission: proceed-in-sandbox`. Do not add `write_file(*)`, `command(*)`, `unsandboxed(*)`, `mcp(*)` or `read_url(*)` rules.
 
 The partner's `.agent-collab/project.yaml` continues to control the working directory, `--add-dir` arguments, edit mode and model allowlist. Do not change its `allowed_paths` to `/`: AG auto-allows writes in an active workspace, and the partner's path list is not a filesystem sandbox. AG's own global read rule supplies the additional read access. The partner continues to pass `--sandbox` and plan mode for read tasks.
 
