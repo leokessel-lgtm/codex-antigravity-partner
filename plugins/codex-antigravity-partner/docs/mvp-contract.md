@@ -13,7 +13,7 @@ Provide a local, auditable control plane for bounded Antigravity headless work. 
 - Workspace and added directories must resolve to absolute paths allowed by the project configuration.
 - Secrets and personal data must not be written to run metadata. Prompts are not persisted by default.
 - Configured paths govern the working directory and `--add-dir` arguments passed to AG. They are not an operating-system filesystem sandbox; the AG CLI remains responsible for enforcing its sandbox and permission model.
-- The current `agy --print` interface receives the prompt as a process argument. The plugin does not persist it, but another privileged local process could observe it while the run is active. Do not use this MVP for secrets or raw high-sensitivity records.
+- The current `agy --print` interface receives the prompt as a process argument. The plugin does not persist it, but another privileged local process could observe it while the run is active. Keep secrets and raw high-sensitivity content out of the prompt. An explicit operator instruction may authorise AG to read private files by path in an ordinary sandboxed run and send opened content to the selected model provider; a standing instruction may cover future routine reads. AG read permissions alone do not supply that authority. The unattended-approval restriction above still applies to sensitive material.
 - Commits, deployment, publication, payments, bookings, external sends and destructive operations remain outside this MVP.
 - Review-packet hashes and validated model attestations strengthen provenance but are not an operating-system sandbox or filesystem read telemetry.
 
